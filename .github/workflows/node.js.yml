@@ -1,32 +1,41 @@
 name: Node.js CI
 
 on:
-push:
+  push:
     branches: ["main"]
-pull_request:
-    branches: ["main", "dev"]
+  pull_request:
+    branches: ["main", "fix/workflow-changes"]
 
 jobs:
-build:
-    name: Backend test
+  build:
+    name: Backend Test with MongoDB
     runs-on: ubuntu-latest
 
     defaults:
-    run:
+      run:
         working-directory: ./quirknotes/backend
 
     strategy:
-    matrix:
+      matrix:
         node-version: [20.x]
 
+    services:
+      mongodb:
+        image: mongo
+        ports:
+          - 27017:27017
+
     steps:
-    - uses: actions/checkout@v3
+      - uses: actions/checkout@v3
 
-    - name: Use Node.js ${{ matrix.node-version }}
-      uses: actions/setup-node@v4
-      with:
-        node-version: ${{ matrix.node-version }}
-    - 
+      - name: Use Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@v3
+        with:
+          node-version: ${{ matrix.node-version }}
 
-    - run: npm i
-    - run: npm test
+      - run: npm i
+
+      - name: Start Server
+        run: nohup node server.js &
+
+      - run: npm test
